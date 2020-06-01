@@ -1,1 +1,6 @@
-
+*
+!.gitignore
+! bird.sv
+! clock_divider.sv
+! DE1_SoC.sv
+! user_in.sv
