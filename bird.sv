@@ -5,7 +5,7 @@ module bird (clk, resetGame, press, x, y, r, g, b);
     input logic [8:0] y;
     output logic [7:0] r, g, b;
 
-    // ram to stora bird image
+    // ram to store bird image
     logic [0:31] array [31:0];
     assign array[0] =  { 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0 };
     assign array[1] =  { 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0 };
@@ -39,18 +39,11 @@ module bird (clk, resetGame, press, x, y, r, g, b);
     assign array[29] =  { 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0 };
     assign array[30] =  { 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0 };
     assign array[31] =  { 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0 };
-	 
-/*	 logic enable;
-	 always_ff @(posedge clk) begin
-		if (reset)
-			enable1 <= 1;
-		else 
-			enable1 <= ~enable1;
-	 end */
+
     logic [8:0] yPosition; // top-left of bird
 	 
   always_ff @(posedge clk) begin
-        if (resetGame) begin // reset the bird original position      
+        if (resetGame) begin // reset the bird original position, pixel(200, 320)      
            yPosition <= 9'd320;                                                                                                                                        
            if (x >= 10'd200 & y >= 9'd320 & x <= 10'd231 & y <= 9'd351) begin 
                 if (array[y-yPosition][x-200] == 1'b0) begin 
@@ -67,6 +60,8 @@ module bird (clk, resetGame, press, x, y, r, g, b);
 		end // if
 			else if (press & enable) begin // move up
                 yPosition <= yPosition - 9'd1;
+            end 
+            else if (press & ~enable) begin
                 if (x >= 10'd200 & y >= yPosition & x <= 10'd231 & y <= yPosition + 9'd31 & yPosition >= 9'd0) begin 
                     if (array[y-yPosition][x-200] == 1'b0) begin 
                         r <= 8'd0;
@@ -82,6 +77,8 @@ module bird (clk, resetGame, press, x, y, r, g, b);
 			end // else if 
 			else if (enable) begin // move down
                 yPosition <= yPosition + 9'd1;
+            end 
+            else if (~enable) begin
                 if (x >= 10'd200 & y >= yPosition & x <= 10'd231 & y <= yPosition + 9'd31 & yPosition <= 9'd479) begin 
                     if (array[y-yPosition][x-200] == 1'b0) begin 
                         r <= 8'd0;
@@ -105,7 +102,7 @@ endmodule // bird
 
 // testbench
 module bird_testbench();
-    logic clk, resetGame, start, press;
+    logic clk, clk2, resetGame, start, press;
     logic [9:0] x;
     logic [8:0] y;
     logic [7:0] r, g, b;
