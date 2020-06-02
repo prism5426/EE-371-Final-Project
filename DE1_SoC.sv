@@ -68,14 +68,24 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 		b <= 8'd225;
 	end */ 
 	
-	//bird bd(CLOCK_25, resetGame, press, x, y, r, g, b);
-	pipe pi(CLOCK_25, resetGame, press, pipefinish, x, y, r, g, b);
-	assign LEDR[0] = pipefinish;
+	logic [7:0] rb, gb, bb;
+	logic [7:0] rp, gp, bp;
+	always_ff @(posedge CLOCK_50) begin
+		r = rb | rp;
+		g = gb | gp;
+		b = bb | bp;
+	
+	end
+	
+	bird bd(CLOCK_25, resetGame, press, x, y, rb, gb, bb);
+	pipe pi(CLOCK_25, resetGame, clk[20], pipefinish, x, y, rp, gp, bp);
+
+	assign LEDR[0] = clk[20];
 	assign LEDR[1] = press;
 	
 	//game_control gc(CLOCK_25, resetGame, press, birdfinish, pipefinish, gameover, update_bird, update_pipe);
+	//game_logic   gl(CLOCK_25, resetGame, press, gameover, birdy, pipex, pipey, pipe_len);
 
-	
 	
 	
 	

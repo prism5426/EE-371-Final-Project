@@ -23,8 +23,8 @@ module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b);
 		case(ps)
 			idle: ns = updatepipe ? waitforvideo : idle;
 			waitforvideo: ns = (x ==10'd639 & y == 9'd479) ? update : waitforvideo;
-//			update: ns = (x ==10'd640 & y == 9'd480) ? done : update;
-			update: ns = done;
+			update: ns = (x ==10'd639 & y == 9'd479) ? done : update;
+//			update: ns = done;
 			done: ns = updatepipe ? done : idle;
 		endcase
 	end
@@ -60,7 +60,7 @@ module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b);
 		
 		if(resetGame)
 			count = 10'd600;
-		else if(ps == update) begin
+		else if((ps == update) & (x == 10'd639 & y == 9'd479)) begin
 			if(count == 10'd0) begin
 				random = 1;
 				count = 10'd600;

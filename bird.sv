@@ -59,7 +59,7 @@ module bird (clk, resetGame, press, x, y, r, g, b);
             end // if
 		end // if
 			else if (press & enable) begin // move up
-                yPosition <= yPosition - 9'd1;
+                yPosition <= yPosition - 9'd4;
             end 
             else if (press & ~enable) begin
                 if (x >= 10'd200 & y >= yPosition & x <= 10'd231 & y <= yPosition + 9'd31 & yPosition >= 9'd0) begin 
@@ -76,7 +76,7 @@ module bird (clk, resetGame, press, x, y, r, g, b);
                 end // if
 			end // else if 
 			else if (enable) begin // move down
-                yPosition <= yPosition + 9'd1;
+                yPosition <= yPosition + 9'd2;
             end 
             else if (~enable) begin
                 if (x >= 10'd200 & y >= yPosition & x <= 10'd231 & y <= yPosition + 9'd31 & yPosition <= 9'd479) begin 
