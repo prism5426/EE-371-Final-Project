@@ -47,7 +47,7 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 
 	// clock divider
 	logic [31:0] clk;
-	 logic CLOCK_25;
+	//logic CLOCK_25;
 
 	 clock_divider divider (.clock(CLOCK_50), .divided_clocks(clk));
 
@@ -65,14 +65,17 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 		r = rb | rp;
 		g = gb | gp;
 		b = bb | bp;
-
+		
+		if(gb & gp)
+			HEX0 = 7'b0000000;
+		
 	end
+	
+	bird bd(CLOCK_25, resetGame, in, x, y, rb, gb, bb);
+	pipe pi(CLOCK_25, resetGame, clk[21], pipefinish, x, y, rp, gp, bp);
 
-	bird bd(CLOCK_25, resetGame, press, x, y, rb, gb, bb);
-	pipe pi(CLOCK_25, resetGame, clk[20], pipefinish, x, y, rp, gp, bp);
-
-	assign LEDR[0] = clk[20];
-	assign LEDR[1] = press;
+	//assign LEDR[0] = clk[20];
+	//assign LEDR[1] = press;
 
 	//game_control gc(CLOCK_25, resetGame, press, birdfinish, pipefinish, gameover, update_bird, update_pipe);
 	//game_logic   gl(CLOCK_25, resetGame, press, gameover, birdy, pipex, pipey, pipe_len);
@@ -81,7 +84,7 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	// bird module
 	logic in;
 	assign in = SW[0]? fly : press;
-	bird bd(CLOCK_25, resetGame, in, x, y, r, g, b);
+	//bird bd(CLOCK_25, resetGame, in, x, y, r, g, b);
 
 	logic signed [23:0] rl, rr;
 	logic signed [23:0] wl, wr;
@@ -150,7 +153,7 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 		AUD_DACDAT
 	);
 
-	assign HEX0 = '1;
+	//assign HEX0 = '1;
 	assign HEX1 = '1;
 	assign HEX2 = '1;
 	assign HEX3 = '1;
