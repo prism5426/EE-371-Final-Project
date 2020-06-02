@@ -45,6 +45,15 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 			 .VGA_R, .VGA_G, .VGA_B, .VGA_BLANK_N,
 			 .VGA_CLK, .VGA_HS, .VGA_SYNC_N, .VGA_VS);
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	// clock divider	
 	logic [31:0] clk;
 	 logic CLOCK_25;
@@ -59,7 +68,23 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 		b <= 8'd225;
 	end */ 
 	
-	bird bd(CLOCK_25, resetGame, press, x, y, r, g, b);
+	//bird bd(CLOCK_25, resetGame, press, x, y, r, g, b);
+	pipe pi(CLOCK_25, resetGame, press, pipefinish, x, y, r, g, b);
+	assign LEDR[0] = pipefinish;
+	assign LEDR[1] = press;
+	
+	//game_control gc(CLOCK_25, resetGame, press, birdfinish, pipefinish, gameover, update_bird, update_pipe);
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	// audio
 	output FPGA_I2C_SCLK;
