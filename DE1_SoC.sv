@@ -45,15 +45,6 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 			 .VGA_R, .VGA_G, .VGA_B, .VGA_BLANK_N,
 			 .VGA_CLK, .VGA_HS, .VGA_SYNC_N, .VGA_VS);
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	// clock divider	
 	logic [31:0] clk;
 	 logic CLOCK_25;
@@ -62,29 +53,29 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	 
 	 assign CLOCK_25 = clk[0]; // 25MHz clock
 	
-/*	always_ff @(posedge CLOCK_50) begin
-		r <= 8'd65;
-		g <= 8'd105;
-		b <= 8'd225;
-	end */ 
-	
-	//bird bd(CLOCK_25, resetGame, press, x, y, r, g, b);
-	pipe pi(CLOCK_25, resetGame, press, pipefinish, x, y, r, g, b);
-	assign LEDR[0] = pipefinish;
-	assign LEDR[1] = press;
-	
-	//game_control gc(CLOCK_25, resetGame, press, birdfinish, pipefinish, gameover, update_bird, update_pipe);
+	// bird module
+	logic in;
+	assign in = SW[0]? fly : press;
+	bird bd(CLOCK_25, resetGame, in, x, y, r, g, b);
 
+	logic signed [23:0] rl, rr;
+	logic signed [23:0] wl, wr;
+
+	// noise filter
+	always @(posedge CLOCK_50) begin
+		rl <= read_ready ? readdata_left : rl;
+		rr <= read_ready ? readdata_right : rr;
+		writedata_left <= write_ready ? wl : writedata_left;
+		writedata_right <= write_ready ? wr : writedata_left;
+	end // always_ff
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	noise_filter nf_left (CLOCK_50, reset, rl, wl);
+	noise_filter nf_right (CLOCK_50, reset, rr, wr);
+
+	logic fly;
+	// voice control module
+	 voiceControl vc(CLOCK_50, resetGame, writedata_left, writedata_right, LEDR, fly);
+	// voiceControl vc(CLOCK_50, resetGame, readdata_left, readdata_right, LEDR, fly);
 	
 	// audio
 	output FPGA_I2C_SCLK;
@@ -100,8 +91,8 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 
 	/* Your code goes here */
 	
-	assign writedata_left = readdata_left;	//Your code goes here 
-	assign writedata_right = readdata_right;	//Your code goes here 
+	// assign writedata_left = readdata_left;	//Your code goes here 
+	// assign writedata_right = readdata_right;	//Your code goes here 
 	assign read = read_ready;	//Your code goes here 
 	assign write = write_ready;	//Your code goes here 
 	
