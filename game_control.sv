@@ -5,9 +5,9 @@ module game_control(clk, resetGame, press,
 	input logic clk, resetGame, press;
 	input logic birdfinish, pipefinish, gameover; // status signal
 	output logic update_bird, update_pipe;        // control signal
-    input logic [9:0] x;
-    input logic [8:0] y;
-    output logic [7:0] r, g, b;
+    input logic [9:0] x; // useful?
+    input logic [8:0] y; // useful?
+    output logic [7:0] r, g, b; //useful?
 	enum {s_start, s_bird, s_pipe, s_logic, s_done} ps, ns;
 	
 	always_ff@(posedge clk) begin

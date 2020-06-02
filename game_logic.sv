@@ -1,8 +1,15 @@
-module game_logic(clk, resetGame, press, x, y, r, g, b);
-	 input logic clk, resetGame, press;
-    input logic [9:0] x;
-    input logic [8:0] y;
-    output logic [7:0] r, g, b;
+module game_logic(clk, resetGame, press, gameover, birdy, pipex, pipey, pipe_len);
+	input logic clk, resetGame, press;
+    input logic [9:0] pipex;
+	input logic [8:0] pipe_len;
+	input logic [8:0] birdy, pipey;
+	output logic gameover;
 	
+	always_comb begin
+		// if(birdy) collision logic
+	
+	end
+	
+	assign gameover = 0; // temporary
 
 endmodule
