@@ -92,7 +92,7 @@ module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b, addscore);
 		end
 	end
 
-	assign random = (count == 10'd0);
+	assign random = (ps == idle);
 	assign pipefinish = (ps == done | ps == idle);
 	assign addscore = (ps == update) & (count == 170);
 endmodule
