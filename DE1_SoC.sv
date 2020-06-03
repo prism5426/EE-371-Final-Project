@@ -47,40 +47,51 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 
 	// clock divider
 	logic [31:0] clk;
-	//logic CLOCK_25;
+	logic CLOCK_25;
 
 	 clock_divider divider (.clock(CLOCK_50), .divided_clocks(clk));
 
 	 assign CLOCK_25 = clk[0]; // 25MHz clock
 
-/*	always_ff @(posedge CLOCK_50) begin
-		r <= 8'd65;
-		g <= 8'd105;
-		b <= 8'd225;
-	end */
-
 	logic [7:0] rb, gb, bb;
-	logic [7:0] rp, gp, bp;
+	logic [7:0] rp [3:0];
+	logic [7:0] gp [3:0];
+	logic [7:0] bp [3:0];
+
+	
+	//logic [7:0] rp, gp, bp;
 	always_ff @(posedge CLOCK_50) begin
-		r = rb | rp;
-		g = gb | gp;
-		b = bb | bp;
+		r <= rb | rp[0] | rp[1] | rp[2] | rp[3];
+		g <= gb | gp[0] | gp[1] | gp[2] | gp[3];
+		b <= bb | bp[0] | bp[1] | bp[2] | bp[3];
 		
-		if(gb & gp)
-			HEX0 = 7'b0000000;
-		
+		if(gb & gp[0] | gp[1] | gp[2] | gp[3])
+			HEX0 <= 7'b0;
+		else
+			HEX0 <= 7'b1;
 	end
 	
 	bird bd(CLOCK_25, resetGame, in, x, y, rb, gb, bb);
-	pipe pi(CLOCK_25, resetGame, clk[21], pipefinish, x, y, rp, gp, bp);
-
-	//assign LEDR[0] = clk[20];
-	//assign LEDR[1] = press;
-
-	//game_control gc(CLOCK_25, resetGame, press, birdfinish, pipefinish, gameover, update_bird, update_pipe);
-	//game_logic   gl(CLOCK_25, resetGame, press, gameover, birdy, pipex, pipey, pipe_len);
-
-
+	
+	
+	genvar k;
+	generate
+		for (k = 0; k < 4; k++) begin : four_pipes
+			pipe pi(CLOCK_25, resetGame, pipefinish & count[k], pipefinish, x, y, rp[k], gp[k], bp[k]);
+		end
+	endgenerate
+		
+	logic [3:0] count;
+	always_ff @(posedge clk[25]) begin
+		if(count == 4'b1000 | resetGame)
+			count <= 4'b0001;
+		else
+			count <= count << 1;
+	
+	end
+	
+	
+	
 	// bird module
 	logic in;
 	assign in = SW[0]? fly : press;
@@ -159,5 +170,76 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	assign HEX3 = '1;
 	assign HEX4 = '1;
 	assign HEX5 = '1;
+
+endmodule
+
+module DE1_SoC_testbench ();
+	logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
+	logic [9:0] LEDR;
+	logic [3:0] KEY;
+	logic [9:0] SW;
+
+	logic CLOCK_50, CLOCK2_50;
+	logic [7:0] VGA_R;
+	logic [7:0] VGA_G;
+	logic [7:0] VGA_B;
+	logic VGA_BLANK_N;
+	logic VGA_CLK;
+	logic VGA_HS;
+	logic VGA_SYNC_N;
+	logic VGA_VS;
+	logic reset;
+	logic in;
+	logic resetGame;
+	logic start;
+	logic press;
+	logic FPGA_I2C_SCLK;
+	logic FPGA_I2C_SDAT;
+	logic AUD_XCK;
+	logic AUD_DACLRCK, AUD_ADCLRCK, AUD_BCLK;
+	logic AUD_ADCDAT;
+	logic AUD_DACDAT;
+	logic fly;
+	logic [3:0] count;
+	logic signed [23:0] rl, rr;
+	logic signed [23:0] wl, wr;
+	logic [7:0] rp, gp, bp [3:0];
+	logic CLOCK_25;
+	logic clk;	
+	logic [9:0] x;
+	logic [8:0] y;
+	logic [7:0] r, g, b;
+
+
+	DE1_SoC dut(.*);
+
+	parameter CLOCK_PERIOD = 100;
+	initial begin
+		clk <= 0;
+		forever #(CLOCK_PERIOD/2) clk <= ~clk;
+	end
+
+	assign CLOCK_25 = clk;
+	assign in = 0;
+	assign rb = 0;
+	assign gb = 0; 
+	assign bb= 0;
+	integer i, j,k;
+
+	initial begin
+		KEY[1] <= 0;	@(posedge clk);
+		KEY[1] <= 1;				@(posedge clk);
+						
+		for (k = 0; k < 3; k++) begin
+			for (i = 0; i <= 681; i++) begin
+				for (j = 0; j <= 481; j++) begin
+					@(posedge clk) x <= i; y <= j;
+				
+				end
+			end		
+		end
+				
+							$stop; // End the simulation.
+	end
 
 endmodule

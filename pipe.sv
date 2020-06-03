@@ -22,56 +22,54 @@ module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b);
 	always_comb begin
 		case(ps)
 			idle: ns = updatepipe ? waitforvideo : idle;
-			waitforvideo: ns = (x ==10'd639 & y == 9'd479) ? update : waitforvideo;
-			update: ns = (x ==10'd639 & y == 9'd479) ? done : update;
+			waitforvideo: ns = (x == 10'd639 & y == 9'd479) ? update : waitforvideo;
+			update: ns = (count == 10'd0) ? done : update;
 //			update: ns = done;
 			done: ns = updatepipe ? done : idle;
 		endcase
 	end
-	
-	assign pipefinish = (ps == done);
-	
-	always_ff@(posedge clk) begin
-		r = 8'd0;
-		b = 8'd0;
-		if(x >= count & x <= count + 10'd30)
-			if(out < 10'd256) begin
-				if(y > 9'd100 & y < 9'd100 + 9'd100)
-					g = 0;
-				else 
-					g = 8'd255;
-			end else if(out < 10'd512) begin
-				if(y > 9'd175 & y < 9'd175 + 9'd100)
-					g = 0;
-				else 
-					g = 8'd255;
-			end else if(out < 10'd768) begin
-				if(y > 9'd250 & y < 9'd250 + 9'd100)
-					g = 0;
-				else 
-					 g = 8'd255;
-			end else begin
-				if(y > 9'd325 & y < 9'd325 + 9'd100)
-					g = 0;
-				else 
-					g = 8'd255;
-		end else 
-			g = 8'd0;
 		
-		if(resetGame)
-			count = 10'd600;
-		else if((ps == update) & (x == 10'd639 & y == 9'd479)) begin
-			if(count == 10'd0) begin
-				random = 1;
-				count = 10'd600;
-			end
-			else begin
-				count= count - 10'd10;
-				random = 0;
-			end
+	always_ff@(posedge clk) begin
+		if(ps == update) begin
+			r <= 8'd0;
+			b <= 8'd0;
+			if(x >= count & x <= count + 10'd30)
+				if(out < 10'd256) begin
+					if(y > 9'd100 & y < 9'd100 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else if(out < 10'd512) begin
+					if(y > 9'd175 & y < 9'd175 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else if(out < 10'd768) begin
+					if(y > 9'd250 & y < 9'd250 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else begin
+					if(y > 9'd325 & y < 9'd325 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+			end else 
+				g <= 8'd0;
+		end else begin
+			r <= 8'd0;
+			b <= 8'd0;
+			g <= 8'd0;
+		end
+		
+		if(resetGame | ps != update) 
+			count <= 10'd600;
+		else if(ps == update & x == 10'd639 & y == 9'd479)begin
+			count <= count - 10'd2;
 		end
 	end
-	
+	assign random = (count == 10'd0);
+	assign pipefinish = (ps == done | ps == idle);
 endmodule
 
 
