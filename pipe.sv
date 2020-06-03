@@ -1,26 +1,30 @@
-module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b);
+module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b, addscore);
 	input logic clk, resetGame;
 	input logic updatepipe;
     input logic [9:0] x;
     input logic [8:0] y;
     output logic [7:0] r, g, b;
 	output logic pipefinish;
-	enum {idle, waitforvideo, update, done}ps, ns;
+	output logic addscore;
+	enum {start, idle, waitforvideo, update, done}ps, ns;
 	
 	logic [9:0] count, out;
+	logic resetLFSR;
 	
-	LFSR randm(clk, resetGame, out, random);
+	LFSR randm(clk, resetLFSR, out, random);
 	
 	always_ff@(posedge clk) begin
 		if(resetGame) 
-			ps <= idle;
+			ps <= start;
 		else
 			ps <= ns;
 	end
 	
+	assign resetLFSR = (ps == start);
 	
 	always_comb begin
 		case(ps)
+			start: ns = idle;
 			idle: ns = updatepipe ? waitforvideo : idle;
 			waitforvideo: ns = (x ==10'd639 & y == 9'd479) ? update : waitforvideo;
 			update: ns = (x ==10'd639 & y == 9'd479) ? done : update;
@@ -32,32 +36,57 @@ module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b);
 	assign pipefinish = (ps == done);
 	
 	always_ff@(posedge clk) begin
-		r = 8'd0;
-		b = 8'd0;
-		if(x >= count & x <= count + 10'd30)
-			if(out < 10'd256) begin
-				if(y > 9'd100 & y < 9'd100 + 9'd100)
-					g = 0;
-				else 
-					g = 8'd255;
-			end else if(out < 10'd512) begin
-				if(y > 9'd175 & y < 9'd175 + 9'd100)
-					g = 0;
-				else 
-					g = 8'd255;
-			end else if(out < 10'd768) begin
-				if(y > 9'd250 & y < 9'd250 + 9'd100)
-					g = 0;
-				else 
-					 g = 8'd255;
-			end else begin
-				if(y > 9'd325 & y < 9'd325 + 9'd100)
-					g = 0;
-				else 
-					g = 8'd255;
-		end else 
-			g = 8'd0;
-		
+		if(ps == update) begin
+			r <= 8'd0;
+			b <= 8'd0;
+			if(x >= count & x <= count + 10'd30)
+				if(out < 10'd128) begin
+					if(y > 9'd30 & y < 9'd30 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else if(out < 10'd256) begin
+					if(y > 9'd70 & y < 9'd70 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else if(out < 10'd384) begin
+					if(y > 9'd110 & y < 9'd110 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else if(out < 10'd512) begin
+					if(y > 9'd150 & y < 9'd150 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else if(out < 10'd640) begin
+					if(y > 9'd190 & y < 9'd190 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else if(out < 10'd768) begin
+					if(y > 9'd230 & y < 9'd230 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else if(out < 10'd896) begin
+					if(y > 9'd270 & y < 9'd270 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+				end else begin
+					if(y > 9'd310 & y < 9'd310 + 9'd100)
+						g <= 0;
+					else 
+						g <= 8'd255;
+			end else 
+				g <= 8'd0;
+		end else begin
+			r <= 8'd0;
+			b <= 8'd0;
+			g <= 8'd0;
+		end
 		if(resetGame)
 			count = 10'd600;
 		else if((ps == update) & (x == 10'd639 & y == 9'd479)) begin
@@ -71,12 +100,15 @@ module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b);
 			end
 		end
 	end
-	
+
+	assign random = (count == 10'd0);
+	assign pipefinish = (ps == done | ps == idle);
+	assign addscore = (ps == update) & (count == 170);
 endmodule
 
 
 module pipe_testbench();
-	logic clk, resetGame;
+	logic clk, resetGame, addscore;
 	logic updatepipe;
     logic [9:0] x;
     logic [8:0] y;

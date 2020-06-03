@@ -53,18 +53,19 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 
 	 assign CLOCK_25 = clk[0]; // 25MHz clock
 
-/*	always_ff @(posedge CLOCK_50) begin
-		r <= 8'd65;
-		g <= 8'd105;
-		b <= 8'd225;
-	end */
+
+	logic [7:0] rb, gb, bb;
+	logic [7:0] rp [9:0];
+	logic [7:0] gp [9:0];
+	logic [7:0] bp [9:0];
+	logic [9:0] addscore;
 
 	logic [7:0] rb, gb, bb;
 	logic [7:0] rp, gp, bp;
 	always_ff @(posedge CLOCK_50) begin
-		r <= die? rDie : rb | rp;
-		g <= die? gDie : gb | gp;
-		b <= die? bDie : bb | bp;	
+		r <= die? rDie : rb | rp[0] | rp[1] | rp[2] | rp[3] | rp[4] | rp[5] | rp[6] | rp[7]| rp[8] | rp[9];
+		g <= die? gDie : gb | gp[0] | gp[1] | gp[2] | gp[3] | gp[4] | gp[5] | gp[6] | gp[7]| gp[8] | gp[9];
+		b <= die? bDie : bb | bp[0] | bp[1] | bp[2] | bp[3] | bp[4] | bp[5] | bp[6] | bp[7]| bp[8] | bp[9];
 	end
 	
 	// bird & pipe
@@ -73,14 +74,43 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 
 	// die module
 	logic die;
-	die d(CLOCK_50, resetGame, x, gp, gb, die, LEDR[1]);
+	die d(CLOCK_50, resetGame, x, gp[0] | gp[1] | gp[2] | gp[3] | gp[4] | gp[5] | gp[6] | gp[7]| gp[8] | gp[9], gb, die, LEDR[1]);
 
 	// die Display
 	logic [7:0] rDie, gDie, bDie;
 	dieDisplay dd(CLOCK_50, resetGame, die, x, y, rDie, gDie, bDie);
 
-	//game_control gc(CLOCK_25, resetGame, press, birdfinish, pipefinish, gameover, update_bird, update_pipe);
-	//game_logic   gl(CLOCK_25, resetGame, press, gameover, birdy, pipex, pipey, pipe_len);
+	// bird & pipe
+	bird bd(CLOCK_25, resetGame, in, x, y, rb, gb, bb);
+
+	genvar k;	
+	generate	
+		for (k = 0; k < 10; k++) begin : pipes	
+			pipe pi(CLOCK_25, resetGame | die, pipefinish & count[k], pipefinish, x, y, rp[k], gp[k], bp[k], addscore[k]);	
+		end	
+	endgenerate	
+	
+	keep_score(CLOCK_25, resetGame, addscore != 10'b0, HEX2, HEX1, HEX0);
+
+	logic [9:0] count;	
+	logic [30:0] num;
+	always_ff @(posedge CLOCK_25) begin	
+		if(resetGame) begin
+			num <= 0;
+			count <= 10'b0000000001;	
+		end else if(num == 31'd50000000) begin	
+			if(count == 10'b1000000000)
+				count <= 10'b0000000001;
+			else
+				count <= count << 1;	
+			num <= 0;
+		end else
+			num <= num + 1;
+
+	end
+	
+	assign LEDR[9:6] = count[3:0];
+
 
 	// input mode
 	logic in;
@@ -153,9 +183,6 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 		AUD_DACDAT
 	);
 
-	//assign HEX0 = '1;
-	assign HEX1 = '1;
-	assign HEX2 = '1;
 	assign HEX3 = '1;
 	assign HEX4 = '1;
 	assign HEX5 = '1;
