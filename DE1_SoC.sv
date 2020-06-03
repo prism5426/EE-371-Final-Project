@@ -51,25 +51,24 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 
 	 clock_divider divider (.clock(CLOCK_50), .divided_clocks(clk));
 
-	 assign CLOCK_25 = clk[0]; // 25MHz clock
+	assign CLOCK_25 = clk[0]; // 25MHz clock
 
 	logic [7:0] rb, gb, bb;
-	logic [7:0] rp [3:0];
-	logic [7:0] gp [3:0];
-	logic [7:0] bp [3:0];
+	logic [7:0] rp [9:0];
+	logic [7:0] gp [9:0];
+	logic [7:0] bp [9:0];
+	logic [9:0] addscore;
 
-
-	//logic [7:0] rp, gp, bp;
 	always_ff @(posedge CLOCK_50) begin
-		r <= die? rDie : rb | rp[0] | rp[1] | rp[2] | rp[3];
-		g <= die? gDie : gb | gp[0] | gp[1] | gp[2] | gp[3];
-		b <= die? bDie : bb | bp[0] | bp[1] | bp[2] | bp[3];
+		r <= die? rDie : rb | rp[0] | rp[1] | rp[2] | rp[3] | rp[4] | rp[5] | rp[6] | rp[7]| rp[8] | rp[9];
+		g <= die? gDie : gb | gp[0] | gp[1] | gp[2] | gp[3] | gp[4] | gp[5] | gp[6] | gp[7]| gp[8] | gp[9];
+		b <= die? bDie : bb | bp[0] | bp[1] | bp[2] | bp[3] | bp[4] | bp[5] | bp[6] | bp[7]| bp[8] | bp[9];
 	end
 	
 	// die module
 	//assign LEDR[1] = press;		
 	logic die;
-	die d(CLOCK_50, resetGame, x, gp[0] | gp[1] | gp[2] | gp[3], gb, die, LEDR[1]);
+	die d(CLOCK_50, resetGame, x, gp[0] | gp[1] | gp[2] | gp[3] | gp[4] | gp[5] | gp[6] | gp[7]| gp[8] | gp[9], gb, die, LEDR[1]);
 
 	// die Display
 	logic [7:0] rDie, gDie, bDie;
@@ -80,19 +79,31 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 
 	genvar k;	
 	generate	
-		for (k = 0; k < 4; k++) begin : four_pipes	
-			pipe pi(CLOCK_25, resetGame, pipefinish & count[k], pipefinish, x, y, rp[k], gp[k], bp[k]);	
+		for (k = 0; k < 10; k++) begin : pipes	
+			pipe pi(CLOCK_25, resetGame | die, pipefinish & count[k], pipefinish, x, y, rp[k], gp[k], bp[k], addscore[k]);	
 		end	
 	endgenerate	
+	
+	keep_score(CLOCK_25, resetGame, addscore != 10'b0, HEX2, HEX1, HEX0);
 
-	logic [3:0] count;	
-	always_ff @(posedge clk[25]) begin	
-		if(count == 4'b1000 | resetGame)	
-			count <= 4'b0001;	
-		else	
-			count <= count << 1;	
-
+	logic [9:0] count;	
+	logic [30:0] num;
+	always_ff @(posedge CLOCK_25) begin	
+		if(resetGame) begin
+			num <= 0;
+			count <= 10'b0000000001;	
+		end else if(num == 31'd50000000) begin	
+			if(count == 10'b1000000000)
+				count <= 10'b0000000001;
+			else
+				count <= count << 1;	
+			num <= 0;
+		end else
+			num <= num + 1;
 	end
+	
+	assign LEDR[9:6] = count[3:0];
+
 
 	logic in;
 	assign in = SW[0]? fly : press;
@@ -164,9 +175,6 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 		AUD_DACDAT
 	);
 
-	//assign HEX0 = '1;
-	assign HEX1 = '1;
-	assign HEX2 = '1;
 	assign HEX3 = '1;
 	assign HEX4 = '1;
 	assign HEX5 = '1;
