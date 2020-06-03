@@ -65,13 +65,34 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 		g <= die? gDie : gb | gp[0] | gp[1] | gp[2] | gp[3];
 		b <= die? bDie : bb | bp[0] | bp[1] | bp[2] | bp[3];
 	end
+	
+	// die module
+	//assign LEDR[1] = press;		
+	logic die;
+	die d(CLOCK_50, resetGame, x, gp[0] | gp[1] | gp[2] | gp[3], gb, die, LEDR[1]);
+
+	// die Display
+	logic [7:0] rDie, gDie, bDie;
+	dieDisplay dd(CLOCK_50, resetGame, die, x, y, rDie, gDie, bDie);
 
 	// bird & pipe
 	bird bd(CLOCK_25, resetGame, in, x, y, rb, gb, bb);
 
+	genvar k;	
+	generate	
+		for (k = 0; k < 4; k++) begin : four_pipes	
+			pipe pi(CLOCK_25, resetGame, pipefinish & count[k], pipefinish, x, y, rp[k], gp[k], bp[k]);	
+		end	
+	endgenerate	
 
+	logic [3:0] count;	
+	always_ff @(posedge clk[25]) begin	
+		if(count == 4'b1000 | resetGame)	
+			count <= 4'b0001;	
+		else	
+			count <= count << 1;	
 
-
+	end
 
 	logic in;
 	assign in = SW[0]? fly : press;
