@@ -60,18 +60,12 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	logic [7:0] bp [9:0];
 	logic [9:0] addscore;
 
-	logic [7:0] rb, gb, bb;
-	logic [7:0] rp, gp, bp;
 	always_ff @(posedge CLOCK_50) begin
 		r <= die? rDie : rb | rp[0] | rp[1] | rp[2] | rp[3] | rp[4] | rp[5] | rp[6] | rp[7]| rp[8] | rp[9];
 		g <= die? gDie : gb | gp[0] | gp[1] | gp[2] | gp[3] | gp[4] | gp[5] | gp[6] | gp[7]| gp[8] | gp[9];
 		b <= die? bDie : bb | bp[0] | bp[1] | bp[2] | bp[3] | bp[4] | bp[5] | bp[6] | bp[7]| bp[8] | bp[9];
 	end
 	
-	// bird & pipe
-	bird bd(CLOCK_25, resetGame, in, x, y, rb, gb, bb);
-	pipe pi(CLOCK_25, resetGame, clk[21], pipefinish, x, y, rp, gp, bp);
-
 	// die module
 	logic die;
 	die d(CLOCK_50, resetGame, x, gp[0] | gp[1] | gp[2] | gp[3] | gp[4] | gp[5] | gp[6] | gp[7]| gp[8] | gp[9], gb, die, LEDR[1]);
