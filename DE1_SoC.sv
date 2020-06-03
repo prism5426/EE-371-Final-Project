@@ -27,8 +27,8 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	assign resetGame = ~KEY[1];
 
 	// start game
-	logic start;
-	assign start = SW[0];
+	// logic start;
+	// assign start = SW[0];
 
 	// user input
 	logic press;
@@ -58,45 +58,25 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	logic [7:0] gp [3:0];
 	logic [7:0] bp [3:0];
 
-	
+
 	//logic [7:0] rp, gp, bp;
 	always_ff @(posedge CLOCK_50) begin
-		r <= rb | rp[0] | rp[1] | rp[2] | rp[3];
-		g <= gb | gp[0] | gp[1] | gp[2] | gp[3];
-		b <= bb | bp[0] | bp[1] | bp[2] | bp[3];
-		
-		if(gb & gp[0] | gp[1] | gp[2] | gp[3])
-			HEX0 <= 7'b0;
-		else
-			HEX0 <= 7'b1;
+		r <= die? rDie : rb | rp[0] | rp[1] | rp[2] | rp[3];
+		g <= die? gDie : gb | gp[0] | gp[1] | gp[2] | gp[3];
+		b <= die? bDie : bb | bp[0] | bp[1] | bp[2] | bp[3];
 	end
-	
+
+	// bird & pipe
 	bird bd(CLOCK_25, resetGame, in, x, y, rb, gb, bb);
-	
-	
-	genvar k;
-	generate
-		for (k = 0; k < 4; k++) begin : four_pipes
-			pipe pi(CLOCK_25, resetGame, pipefinish & count[k], pipefinish, x, y, rp[k], gp[k], bp[k]);
-		end
-	endgenerate
-		
-	logic [3:0] count;
-	always_ff @(posedge clk[25]) begin
-		if(count == 4'b1000 | resetGame)
-			count <= 4'b0001;
-		else
-			count <= count << 1;
-	
-	end
-	
-	
-	
-	// bird module
+
+
+
+
+
 	logic in;
 	assign in = SW[0]? fly : press;
-	//bird bd(CLOCK_25, resetGame, in, x, y, r, g, b);
 
+	// noise filter logic
 	logic signed [23:0] rl, rr;
 	logic signed [23:0] wl, wr;
 
@@ -111,10 +91,9 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	noise_filter nf_left (CLOCK_50, reset, rl, wl);
 	noise_filter nf_right (CLOCK_50, reset, rr, wr);
 
-	logic fly;
 	// voice control module
-	 voiceControl vc(CLOCK_50, resetGame, writedata_left, writedata_right, LEDR, fly);
-	// voiceControl vc(CLOCK_50, resetGame, readdata_left, readdata_right, LEDR, fly);
+	logic fly;
+	voiceControl vc(CLOCK_50, resetGame, writedata_left, writedata_right, LEDR[0], fly);
 
 	// audio
 	output FPGA_I2C_SCLK;
@@ -205,7 +184,7 @@ module DE1_SoC_testbench ();
 	logic signed [23:0] wl, wr;
 	logic [7:0] rp, gp, bp [3:0];
 	logic CLOCK_25;
-	logic clk;	
+	logic clk;
 	logic [9:0] x;
 	logic [8:0] y;
 	logic [7:0] r, g, b;
@@ -222,23 +201,23 @@ module DE1_SoC_testbench ();
 	assign CLOCK_25 = clk;
 	assign in = 0;
 	assign rb = 0;
-	assign gb = 0; 
+	assign gb = 0;
 	assign bb= 0;
 	integer i, j,k;
 
 	initial begin
 		KEY[1] <= 0;	@(posedge clk);
 		KEY[1] <= 1;				@(posedge clk);
-						
+
 		for (k = 0; k < 3; k++) begin
 			for (i = 0; i <= 681; i++) begin
 				for (j = 0; j <= 481; j++) begin
 					@(posedge clk) x <= i; y <= j;
-				
+
 				end
-			end		
+			end
 		end
-				
+
 							$stop; // End the simulation.
 	end
 
