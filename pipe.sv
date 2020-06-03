@@ -26,13 +26,13 @@ module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b, addscore);
 		case(ps)
 			start: ns = idle;
 			idle: ns = updatepipe ? waitforvideo : idle;
-			waitforvideo: ns = (x ==10'd639 & y == 9'd479) ? update : waitforvideo;
+			waitforvideo: ns = (x == 10'd639 & y == 9'd479) ? update : waitforvideo;
 			update: ns = (count == 10'd0) ? done : update;
 //			update: ns = done;
 			done: ns = updatepipe ? done : idle;
 		endcase
 	end
-	
+
 	always_ff@(posedge clk) begin
 		if(ps == update) begin
 			r <= 8'd0;
@@ -85,6 +85,7 @@ module pipe(clk, resetGame, updatepipe, pipefinish, x, y, r, g, b, addscore);
 			b <= 8'd0;
 			g <= 8'd0;
 		end
+
 		if(resetGame | ps != update)
 			count = 10'd600;
 		else if((ps == update) & (x ==10'd639 & y == 9'd479)) begin

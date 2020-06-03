@@ -47,12 +47,11 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 
 	// clock divider
 	logic [31:0] clk;
-	//logic CLOCK_25;
+	logic CLOCK_25;
 
 	 clock_divider divider (.clock(CLOCK_50), .divided_clocks(clk));
 
-	 assign CLOCK_25 = clk[0]; // 25MHz clock
-
+	assign CLOCK_25 = clk[0]; // 25MHz clock
 
 	logic [7:0] rb, gb, bb;
 	logic [7:0] rp [9:0];
@@ -67,6 +66,7 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	end
 	
 	// die module
+	//assign LEDR[1] = press;		
 	logic die;
 	die d(CLOCK_50, resetGame, x, gp[0] | gp[1] | gp[2] | gp[3] | gp[4] | gp[5] | gp[6] | gp[7]| gp[8] | gp[9], gb, die, LEDR[1]);
 
@@ -100,13 +100,11 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 			num <= 0;
 		end else
 			num <= num + 1;
-
 	end
 	
 	assign LEDR[9:6] = count[3:0];
 
 
-	// input mode
 	logic in;
 	assign in = SW[0]? fly : press;
 
@@ -180,5 +178,76 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	assign HEX3 = '1;
 	assign HEX4 = '1;
 	assign HEX5 = '1;
+
+endmodule
+
+module DE1_SoC_testbench ();
+	logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
+	logic [9:0] LEDR;
+	logic [3:0] KEY;
+	logic [9:0] SW;
+
+	logic CLOCK_50, CLOCK2_50;
+	logic [7:0] VGA_R;
+	logic [7:0] VGA_G;
+	logic [7:0] VGA_B;
+	logic VGA_BLANK_N;
+	logic VGA_CLK;
+	logic VGA_HS;
+	logic VGA_SYNC_N;
+	logic VGA_VS;
+	logic reset;
+	logic in;
+	logic resetGame;
+	logic start;
+	logic press;
+	logic FPGA_I2C_SCLK;
+	logic FPGA_I2C_SDAT;
+	logic AUD_XCK;
+	logic AUD_DACLRCK, AUD_ADCLRCK, AUD_BCLK;
+	logic AUD_ADCDAT;
+	logic AUD_DACDAT;
+	logic fly;
+	logic [3:0] count;
+	logic signed [23:0] rl, rr;
+	logic signed [23:0] wl, wr;
+	logic [7:0] rp, gp, bp [3:0];
+	logic CLOCK_25;
+	logic clk;
+	logic [9:0] x;
+	logic [8:0] y;
+	logic [7:0] r, g, b;
+
+
+	DE1_SoC dut(.*);
+
+	parameter CLOCK_PERIOD = 100;
+	initial begin
+		clk <= 0;
+		forever #(CLOCK_PERIOD/2) clk <= ~clk;
+	end
+
+	assign CLOCK_25 = clk;
+	assign in = 0;
+	assign rb = 0;
+	assign gb = 0;
+	assign bb= 0;
+	integer i, j,k;
+
+	initial begin
+		KEY[1] <= 0;	@(posedge clk);
+		KEY[1] <= 1;				@(posedge clk);
+
+		for (k = 0; k < 3; k++) begin
+			for (i = 0; i <= 681; i++) begin
+				for (j = 0; j <= 481; j++) begin
+					@(posedge clk) x <= i; y <= j;
+
+				end
+			end
+		end
+
+							$stop; // End the simulation.
+	end
 
 endmodule

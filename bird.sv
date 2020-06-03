@@ -4,7 +4,7 @@ module bird (clk, resetGame, press, x, y, r, g, b);
     input logic [9:0] x;
     input logic [8:0] y;
     output logic [7:0] r, g, b;
-
+    logic enable;
     // ram to store bird image
     logic [0:31] array [31:0];
     assign array[0] =  { 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0 };
@@ -95,7 +95,6 @@ module bird (clk, resetGame, press, x, y, r, g, b);
 	end // always_ff
 	
     // enable signal
-    logic enable;
     birdCounter #(2**19-1)(clk, resetGame, enable);
 
 endmodule // bird
