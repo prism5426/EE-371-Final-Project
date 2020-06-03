@@ -27,8 +27,8 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	assign resetGame = ~KEY[1];
 
 	// start game
-	logic start;
-	assign start = SW[0];
+	// logic start;
+	// assign start = SW[0];
 
 	// user input
 	logic press;
@@ -62,30 +62,31 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	logic [7:0] rb, gb, bb;
 	logic [7:0] rp, gp, bp;
 	always_ff @(posedge CLOCK_50) begin
-		r = rb | rp;
-		g = gb | gp;
-		b = bb | bp;
-		
-		if(gb & gp)
-			HEX0 = 7'b0000000;
-		
+		r <= die? rDie : rb | rp;
+		g <= die? gDie : gb | gp;
+		b <= die? bDie : bb | bp;	
 	end
 	
+	// bird & pipe
 	bird bd(CLOCK_25, resetGame, in, x, y, rb, gb, bb);
 	pipe pi(CLOCK_25, resetGame, clk[21], pipefinish, x, y, rp, gp, bp);
 
-	//assign LEDR[0] = clk[20];
-	//assign LEDR[1] = press;
+	// die module
+	logic die;
+	die d(CLOCK_50, resetGame, x, gp, gb, die, LEDR[1]);
+
+	// die Display
+	logic [7:0] rDie, gDie, bDie;
+	dieDisplay dd(CLOCK_50, resetGame, die, x, y, rDie, gDie, bDie);
 
 	//game_control gc(CLOCK_25, resetGame, press, birdfinish, pipefinish, gameover, update_bird, update_pipe);
 	//game_logic   gl(CLOCK_25, resetGame, press, gameover, birdy, pipex, pipey, pipe_len);
 
-
-	// bird module
+	// input mode
 	logic in;
 	assign in = SW[0]? fly : press;
-	//bird bd(CLOCK_25, resetGame, in, x, y, r, g, b);
 
+	// noise filter logic
 	logic signed [23:0] rl, rr;
 	logic signed [23:0] wl, wr;
 
@@ -100,10 +101,9 @@ module DE1_SoC (HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW,
 	noise_filter nf_left (CLOCK_50, reset, rl, wl);
 	noise_filter nf_right (CLOCK_50, reset, rr, wr);
 
-	logic fly;
 	// voice control module
-	 voiceControl vc(CLOCK_50, resetGame, writedata_left, writedata_right, LEDR, fly);
-	// voiceControl vc(CLOCK_50, resetGame, readdata_left, readdata_right, LEDR, fly);
+	logic fly;
+	voiceControl vc(CLOCK_50, resetGame, writedata_left, writedata_right, LEDR[0], fly);
 
 	// audio
 	output FPGA_I2C_SCLK;
