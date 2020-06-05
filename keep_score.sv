@@ -1,3 +1,13 @@
+/*  keep_score module that connects to three 7 segment display.
+	input:
+		clk 	 - clock signal
+		reset 	 - reset signal, reset the score to 0
+		addscore - signal that tells the module to increment score
+	output:
+		HEX2 	 - third digit of the HEX display
+		HEX1 	 - second digit of the HEX display
+		HEX0 	 - first digit of the HEX display
+*/
 module keep_score(clk, reset, addscore,HEX2, HEX1, HEX0);
 	input logic clk, reset, addscore;
 	output logic [6:0] HEX2, HEX1, HEX0;
@@ -5,6 +15,7 @@ module keep_score(clk, reset, addscore,HEX2, HEX1, HEX0);
 	
 	logic [9:0] count;
 	
+	// FSM state update
 	always_ff @(posedge clk) begin
 		if(reset) 
 			ps <= start;
@@ -12,7 +23,7 @@ module keep_score(clk, reset, addscore,HEX2, HEX1, HEX0);
 			ps <= ns;
 	end
 	
-	
+	// Next state assignment
 	always_comb begin
 		case(ps)
 			start: ns <= idle;
@@ -22,6 +33,7 @@ module keep_score(clk, reset, addscore,HEX2, HEX1, HEX0);
 		endcase
 	end
 
+	// condition for changing the count
 	always_ff @(posedge clk) begin
 		if(ps == start)
 			count <= 0;

@@ -1,3 +1,11 @@
+/*  LFSR module implemented from EE271. Left shift registor with feedback that provide randomish output.
+	inputs:
+		clk	 	- input clock
+		reset 	- reset signal for the registors
+		enable	- enable signal that updates the output 
+	outputs:
+		out 	- 10bits output bus, ranging from [0-1023[
+*/
 module LFSR(clk, reset, out, enable);
 	input logic clk, reset, enable;
 	output logic [9:0] out;
