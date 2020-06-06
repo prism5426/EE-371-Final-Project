@@ -1,4 +1,15 @@
-// bird module
+// This module draws the bird to VGA and allows it to move up and down
+/*  Inputs: clk - system clock
+            resetGame - resets the bird to original position
+            press - logic to move up the bird
+            x - horizontal coordinate of the VGA resolution
+            y - vertical coordinate of the VGA resolution
+    
+    Outputs: 
+            r - red
+            g - green
+            b - blue
+*/
 module bird (clk, resetGame, press, x, y, r, g, b);
     input logic clk, resetGame, press;
     input logic [9:0] x;

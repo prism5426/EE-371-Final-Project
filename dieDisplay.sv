@@ -1,4 +1,16 @@
 // this module displays the dead info
+/* Inputs:
+            clk - system clock
+            reset - reset the display
+            die - the bird's status
+            x - VGA horizontal coordinate
+            y - VGA vertical coordinate 
+
+   Outputs:
+            r - red
+            g - green
+            b - blue
+*/
 module dieDisplay(clk, reset, die, x, y, r, g, b);
     input logic clk, reset, die;
     input logic [9:0] x;
@@ -495,7 +507,7 @@ assign array[479] =  { 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b
             g <= 8'd0;
             b <= 8'd0;
         end // if
-        else if (die)begin
+        else if (die)begin // display the image if the bird died
             if (array[y][x] == 1'b0) begin 
                     r <= 8'd0;
                     g <= 8'd0;

@@ -1,4 +1,14 @@
-// voice control module
+// This module controls the bird by mic input
+/* Inputs:
+            clk - system clock
+            reset - resets the game
+            readdata_left - left channel mic input
+            readdata_right - right channel mic input
+
+    Outputs:
+            LEDR - led light to indicate mic volume
+            fly - signal to fly the bird
+*/
 module voiceControl(clk, reset, readdata_left, readdata_right, LEDR, fly);
     input logic clk, reset;
     input logic signed [23:0] readdata_left, readdata_right;
@@ -29,12 +39,11 @@ module voiceControl(clk, reset, readdata_left, readdata_right, LEDR, fly);
         if (abs_right > 24'd10000) begin 
             LEDR <=  1'b1;
 				fly <= 1;
-		  end
+		  end // if
         else begin
             LEDR <=  1'b0;
 				fly = 0;
-		  end 
-			  
+		  end // else		  
     end // always_ff 
     
 endmodule // voiceControl

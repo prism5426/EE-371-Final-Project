@@ -1,4 +1,15 @@
-// this module detects is the bird dies
+// this module detects if the bird dies (hits the pipe)
+/* Inputs: 
+            clk - system clock
+            reset - reset the game (bird alive)
+            x - horizontal coordinate of the VGA 
+            gp - green value of pipe
+            gb - green value of bird
+
+   Outputs:
+            die - logic of bird status
+            LEDR - on if the bird died
+*/
 module die(clk, reset, x, gp, gb, die, LEDR);
     input logic clk, reset;
     input logic [9:0] x;
@@ -9,6 +20,7 @@ module die(clk, reset, x, gp, gb, die, LEDR);
     // possible states
     enum {alive, dead} ps, ns;
 
+    // combinational logic to determine the bird's status
     always_comb begin
         case (ps)
             alive: if (x >= 10'd200 & x <= 10'd231 & gp == gb & gp == 8'd255) // green is 255 in both bird and pipe if bird hits pipe
@@ -23,6 +35,7 @@ module die(clk, reset, x, gp, gb, die, LEDR);
         endcase
     end // always_comb
 
+    // next state logic
     always_ff @(posedge clk) begin
         if (reset)
             ps <= alive;
@@ -30,6 +43,7 @@ module die(clk, reset, x, gp, gb, die, LEDR);
             ps <= ns;
     end
 
+    // output assignments
     assign die = (ps == dead);
     assign LEDR = die; 
      
